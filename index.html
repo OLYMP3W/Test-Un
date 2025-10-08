@@ -1,0 +1,764 @@
+<!doctype html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- TITRE MIS À JOUR -->
+    <title>Test Un</title> 
+    <!-- Chargement de Tailwind CSS pour un style moderne et responsive -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Configuration de base Tailwind et de la police Inter */
+        html, body {
+            height: 100%;
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8; /* Fond très léger et moderne */
+            color: #1e293b; /* Texte gris foncé */
+        }
+        
+        /* Styles CSS pour la structure de l'application */
+        .app-shell {
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Variables CSS pour les dimensions */
+        :root {
+            --sidebar-width: 280px; 
+            --sidebar-collapsed-width: 0px; 
+        }
+
+        /* La barre latérale est fixe et utilise la propriété 'transform' pour l'animation de glissement */
+        .sidebar {
+            width: var(--sidebar-width);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease-in-out;
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 50; 
+            transform: translateX(0); 
+            box-shadow: 4px 0 10px rgba(0, 0, 0, 0.05); 
+        }
+
+        /* Le contenu principal du chat s'adapte à la barre latérale */
+        .chat-area {
+            margin-left: var(--sidebar-width);
+            transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            flex: 1; 
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background-color: #fff; 
+        }
+
+        /* --- MODE COLLAPSED (uniquement sur mobile, ou forcé par l'utilisateur) --- */
+        body.sidebar-collapsed .sidebar {
+            transform: translateX(calc(var(--sidebar-width) * -1));
+        }
+
+        body.sidebar-collapsed .chat-area {
+            margin-left: 0;
+        }
+
+        /* --- NOUVEAUX STYLES D'ÉLÉMENTS --- */
+
+        /* 1. Bouton Hamburger */
+        .hamburger-icon {
+            z-index: 60; 
+            position: absolute;
+            top: 1rem;
+            left: 1rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); 
+        }
+
+        /* 2. Style des bulles de message */
+        .message-bubble {
+            border-radius: 1.5rem; 
+            max-width: 85%; 
+            padding: 0.8rem 1.2rem;
+            animation: fadeInUp 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94); 
+            /* white-space: pre-wrap; REMOVED: Managed by JS markdown render now */
+            word-wrap: break-word; /* Ensure long words break */
+        }
+        .message.bot .message-bubble {
+            border-bottom-left-radius: 0.5rem; 
+            background-color: #e2e8f0; 
+            color: #1e293b;
+        }
+        .message.user .message-bubble {
+            border-bottom-right-radius: 0.5rem;
+            background-color: #3b82f6; 
+            color: #ffffff;
+        }
+
+        /* --- Rendu des blocs de code (Amélioration Pro) --- */
+        .message-bubble pre {
+            background-color: #1f2937; /* Gris très foncé pour le code */
+            color: #f3f4f6; /* Texte clair */
+            padding: 1rem;
+            border-radius: 0.5rem;
+            overflow-x: auto; /* Permet le défilement horizontal */
+            margin-top: 0.75rem;
+            margin-bottom: 0.75rem;
+            font-family: 'Fira Code', 'Consolas', 'Monaco', monospace;
+            line-height: 1.4;
+            font-size: 0.9rem;
+            /* Pas de bordure pour les blocs de code en Markdown */
+        }
+        .message-bubble code {
+            /* Le code inline est dans une bulle légèrement différente */
+            background-color: rgba(0, 0, 0, 0.1); 
+            padding: 0.2rem 0.4rem;
+            border-radius: 0.25rem;
+            font-size: 0.9rem;
+        }
+        .message-bubble pre code {
+            /* Réinitialiser pour le code dans un bloc <pre> */
+            background-color: transparent; 
+            padding: 0;
+        }
+
+
+        /* 3. Input Composer (Le plus "pro") */
+        .composer {
+            /* Ajustement pour un meilleur look desktop */
+            padding: 1.5rem 3rem; 
+            box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.05); 
+        }
+        .composer-input {
+            border-radius: 9999px; 
+            padding-top: 0.75rem;
+            padding-bottom: 0.75rem;
+            min-height: 48px;
+            font-size: 1rem;
+        }
+        
+        /* 4. Scrollbar (Style moderne et fin) */
+        .messages::-webkit-scrollbar {
+            width: 8px;
+        }
+        .messages::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+        .messages::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        /* --- Animations et états des boutons (plus de vie) --- */
+        .nav-item, .hamburger-icon, .send { transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94); }
+        .nav-item:hover { 
+            transform: translateY(-2px); 
+            box-shadow: 0 6px 15px rgba(59, 130, 246, 0.2); 
+        }
+        .nav-item:active, .hamburger-icon:active, .send:active { 
+            transform: scale(0.95); 
+            box-shadow: none; 
+        }
+
+        /* --- Style du Typing Indicator (plus pro) --- */
+        .typing-dots { display: flex; align-items: center; gap: 4px; padding: 4px 0; }
+        .typing-dot { 
+            width: 8px; 
+            height: 8px; 
+            background-color: #3b82f6; 
+            border-radius: 50%; 
+            display: inline-block; 
+            opacity: 0.8;
+            animation: typing-pulse 1s infinite cubic-bezier(0.4, 0, 0.2, 1); 
+        }
+        .typing-dot:nth-child(2) { animation-delay: 0.15s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.3s; }
+        @keyframes typing-pulse { 
+            0%, 100% { transform: translateY(0); opacity: 0.8; } 
+            50% { transform: translateY(-4px); opacity: 1; } 
+        }
+
+
+        /* --- RÉACTIVITÉ MOBILE (max-width: 768px) --- */
+        @media (max-width: 768px) {
+            /* 1. Toujours masqué sur mobile */
+            .sidebar {
+                transform: translateX(calc(var(--sidebar-width) * -1));
+                box-shadow: none; 
+            }
+            body:not(.sidebar-collapsed) .sidebar {
+                transform: translateX(0); 
+            }
+            
+            /* 2. Le chat prend 100% de la largeur */
+            .chat-area,
+            body.sidebar-collapsed .chat-area {
+                margin-left: 0;
+            }
+            
+            /* 3. Positionner le bouton hamburger en haut à gauche du CHAT */
+            .chat-header {
+                position: relative; 
+                padding-left: 4rem; 
+                text-align: center;
+            }
+            .hamburger-icon {
+                left: 1rem; 
+                top: 0.75rem;
+            }
+            
+            /* 4. Ajuster le padding de l'input et du chat */
+            .composer {
+                padding: 1rem 1rem; /* Très responsable sur mobile */
+            }
+            .messages {
+                padding: 1rem;
+            }
+        }
+        
+        /* Animation du message à l'apparition */
+        @keyframes fadeInUp { 
+            from { opacity: 0; transform: translateY(10px); } 
+            to { opacity: 1; transform: translateY(0); } 
+        }
+    </style>
+</head>
+<body class="bg-gray-50 sidebar-collapsed">
+    <div class="app-shell">
+        <!-- BARRE LATÉRALE (SIDEBAR) -->
+        <aside class="sidebar bg-white flex flex-col p-4 space-y-8" id="sidebar" aria-hidden="true">
+            
+            <!-- Logo / Bouton Fermer (Affiché uniquement dans le sidebar) -->
+            <div class="brand flex items-center justify-between">
+                <!-- TITRE MIS À JOUR DANS LE SIDEBAR -->
+                <h1 class="text-2xl font-bold text-gray-800 transition duration-300">
+                    Test Un
+                </h1>
+                <button class="hamburger-icon-close w-8 h-8 rounded-full text-gray-500 flex items-center justify-center font-bold text-xl cursor-pointer hover:bg-gray-100 md:hidden" id="sidebarClose" aria-label="Fermer le menu">
+                    &times;
+                </button>
+            </div>
+
+            <!-- Navigation -->
+            <nav class="nav flex flex-col gap-2 flex-1" role="navigation" aria-label="Principale">
+                <!-- Nouveau Chat est un lien / bouton d'action plus grand -->
+                <button class="nav-item flex items-center gap-2 p-3 rounded-xl text-white bg-blue-600 font-semibold hover:bg-blue-700 transition duration-150 shadow-lg shadow-blue-500/30" type="button" aria-current="page" onclick="startNewChat()">
+                    <span class="icon text-xl">✨</span> 
+                    <span class="label">Nouveau Chat</span>
+                </button>
+                
+                <!-- Les autres éléments sont conservés pour la structure Pro -->
+                <button class="nav-item flex items-center gap-2 p-3 rounded-xl text-gray-700 hover:bg-gray-100 transition duration-150" type="button">
+                    <span class="icon text-xl">🕘</span> 
+                    <span class="label">Historique</span>
+                </button>
+                <button class="nav-item flex items-center gap-2 p-3 rounded-xl text-gray-700 hover:bg-gray-100 transition duration-150" type="button">
+                    <span class="icon text-xl">📚</span> 
+                    <span class="label">Knowledge Base</span>
+                </button>
+                <button class="nav-item flex items-center gap-2 p-3 rounded-xl text-gray-700 hover:bg-gray-100 transition duration-150" type="button">
+                    <span class="icon text-xl">⚙</span> 
+                    <span class="label">Paramètres</span>
+                </button>
+                
+                <!-- Ajout d'un pied de page ou profil -->
+                <div class="mt-auto pt-4 border-t border-gray-100">
+                    <button class="nav-item flex items-center gap-2 p-3 rounded-xl text-gray-700 hover:bg-gray-100 transition duration-150 w-full" type="button">
+                        <span class="icon text-xl">👤</span> 
+                        <span class="label">Mon Profil</span>
+                    </button>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- ZONE DE CHAT PRINCIPALE (MAIN CONTENT) -->
+        <main class="chat-area" id="chatArea">
+            
+            <!-- En-tête de la conversation -->
+            <header class="chat-header p-4 border-b border-gray-100 bg-white sticky top-0 z-10 flex items-center justify-center">
+                 <!-- Bouton Hamburger (Position absolue dans CSS) -->
+                <button class="hamburger-icon w-10 h-10 rounded-full bg-white text-gray-700 flex items-center justify-center font-bold text-lg cursor-pointer hover:bg-gray-100 transition duration-150 border border-gray-200" id="sidebarToggle" aria-label="Toggle Sidebar">
+                    ☰
+                </button>
+                <!-- TITRE MIS À JOUR DE L'ASSISTANT -->
+                <div class="text-lg font-bold text-gray-800">LYX Test Un</div>
+            </header>
+
+            <!-- Zone des messages (défilable) -->
+            <section class="messages flex-1 p-8 overflow-y-auto flex flex-col gap-4 bg-gray-50 md:p-12" id="messages" aria-live="polite">
+                <!-- Les messages initiaux sont chargés par JS -->
+            </section>
+
+            <!-- Compositeur de message (Formulaire d'envoi) -->
+            <form class="composer flex items-center border-t border-gray-100 bg-white sticky bottom-0 z-10" id="composer" action="#" onsubmit="return false">
+                
+                <!-- Champ de saisie -->
+                <input id="input" autocomplete="off" placeholder="Envoyez un message ou posez une question..." class="composer-input flex-1 py-3 px-6 border border-gray-300 rounded-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-150 text-gray-700 shadow-inner" />
+                
+                <!-- Bouton d'envoi -->
+                <button type="submit" class="send w-10 h-10 ml-3 rounded-full bg-blue-600 text-white flex items-center justify-center hover:bg-blue-700 transition duration-150 shadow-xl shadow-blue-500/40 flex-shrink-0" aria-label="Envoyer le message">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5 -rotate-45 translate-x-0.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A5.996 5.996 0 0112 12m9.73 8.874a5.996 5.996 0 00-11.465-3.248L6 12m0 0L3.269 20.874A5.996 5.996 0 0012 12m0 0l-7.73-8.874a5.996 5.996 0 0111.465 3.248L18 12m-6 0l7.73 8.874m0 0l-7.73-8.874" />
+                    </svg>
+                </button>
+            </form>
+        </main>
+    </div>
+
+<script>
+    // --- NOUVELLE CONFIGURATION : PASSAGE À L'API GEMINI ---
+    
+    // *** CLÉ API GEMINI (Laissée telle quelle, fournie par l'utilisateur) ***
+    const GEMINI_API_KEY = "AIzaSyDlizgkhxakSq6P_73_yjHLXUfrbcEYVPg"; 
+    
+    // URL de base pour les modèles Gemini
+    const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models";
+    
+    // Modèle Gemini rapide et gratuit pour l'expérimentation
+    const GEMINI_MODEL = "gemini-2.5-flash-preview-05-20";
+
+    // *** INSTRUCTION SYSTÈME POUR DÉFINIR LA PERSONA DE L'IA ***
+    const GEMINI_SYSTEM_INSTRUCTION = `
+        Ton nom est **Test Un**. 
+        Tu as été créé par la **communauté LYX developer community**.
+       LYX Developer Community – Notre Vision 🔥
+
+LYX, ce n’est pas juste un nom, c’est un mouvement.  
+C’est une communauté de bâtisseurs, de passionnés de technologie, de rêveurs qui n’acceptent pas la moyenne.
+
+Notre but ? Élever chacun d’entre nous à un niveau technique exceptionnel.  
+On ne forme pas juste des codeurs. On forge des architectes du futur, des esprits capables de rivaliser (et dépasser) les meilleurs mondiaux.
+
+💡 Test Un, notre premier chatbot, incarne cette vision :  
+Un projet créé par la communauté, pour apprendre, pour viser haut, pour marquer le game.
+
+Chez LYX, on croit que :
+- L’excellence est un choix.  
+- La tech est une arme de transformation.  
+- Et que chacun mérite sa place en haut, s’il bosse pour.
+
+Alors à la team : LYX vous tend la main, mais vous devez grimper.  
+Apprenez, créez, osez, testez, ratez, recommencez.  
+Le futur se construit maintenant. Et c’est avec vous.
+
+
+        Tu es un assistant technique spécialisé, amical et professionnel, dont le rôle est d'aider les développeurs et les membres de la communauté LYX developer community avec tous leurs projets technologiques, incluant le code, les concepts d'architecture, et le débogage. 
+        Réponds toujours en français, avec un ton encourageant et précis.
+        Assure-toi que les blocs de code sont toujours entourés de \`\`\`.
+        Ne parle jamais de ton modèle sous-jacent (Gemini), sauf si cela est demandé explicitement.
+    `;
+
+    // --- SÉLECTION DES ÉLÉMENTS DU DOM ---
+    const body = document.body;
+    const sidebar = document.getElementById('sidebar');
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    const sidebarClose = document.getElementById('sidebarClose');
+    const messagesContainer = document.getElementById('messages');
+    const composer = document.getElementById('composer');
+    const input = document.getElementById('input');
+    const sendButton = composer.querySelector('.send');
+
+    // --- GESTION DE L'ÉTAT (UI/localStorage) ---
+    const SIDEBAR_KEY = 'sidebarCollapsed_v4'; 
+    const CHAT_KEY = 'chatHistory_v4'; // Nouvelle clé pour l'historique
+    let chatHistory = []; // Stocke les messages
+    let isRequesting = false; 
+
+    // Message d'accueil par défaut
+    const initialBotMessage = {
+        kind: 'bot',
+        text: 'Bonjour ! Je suis Test Un, un assistant technique créé par la communauté LYX developer community. Je suis là pour vous aider avec tous vos projets tech. Par où souhaitez-vous commencer ?'
+    };
+
+    // Détermine si l'on est sur un petit écran
+    const isMobile = () => window.innerWidth <= 768;
+
+    /**
+     * @function saveMessages
+     * Sauvegarde l'historique du chat dans localStorage.
+     */
+    function saveMessages() {
+        try {
+            localStorage.setItem(CHAT_KEY, JSON.stringify(chatHistory.filter(msg => !msg.isTyping)));
+        } catch(e) {
+            console.error("Erreur lors de la sauvegarde de l'historique :", e);
+        }
+    }
+
+    /**
+     * @function loadMessages
+     * Charge l'historique du chat depuis localStorage.
+     */
+    function loadMessages() {
+        try {
+            const savedHistory = localStorage.getItem(CHAT_KEY);
+            if (savedHistory) {
+                chatHistory = JSON.parse(savedHistory);
+            }
+        } catch(e) {
+            console.warn("Impossible de charger l'historique. Démarrage d'un nouveau chat.", e);
+            chatHistory = [];
+        }
+
+        // Si l'historique est vide (nouveau chat ou échec du chargement), ajouter le message initial
+        if (chatHistory.length === 0) {
+            chatHistory.push(initialBotMessage);
+        }
+
+        // Afficher tous les messages chargés
+        messagesContainer.innerHTML = '';
+        chatHistory.forEach(msg => appendMessage(msg.kind, msg.text, false, false));
+    }
+
+    /**
+     * @function startNewChat
+     * Efface l'historique et recharge la page pour une nouvelle conversation.
+     */
+    function startNewChat() {
+        try {
+            localStorage.removeItem(CHAT_KEY);
+            window.location.reload(); 
+        } catch(e) {
+            console.error("Erreur lors du nettoyage de l'historique :", e);
+            window.location.reload(); 
+        }
+    }
+
+    // --- GESTION DE LA SIDEBAR (Inchangée) ---
+
+    function setSidebarState(isCollapsed) {
+        if (isCollapsed) {
+            body.classList.add('sidebar-collapsed');
+            sidebar.setAttribute('aria-hidden', 'true');
+        } else {
+            body.classList.remove('sidebar-collapsed');
+            sidebar.setAttribute('aria-hidden', 'false');
+        }
+        try { 
+            localStorage.setItem(SIDEBAR_KEY, isCollapsed ? '1' : '0'); 
+        } catch(e) {
+            console.warn("Impossible de sauvegarder l'état dans localStorage.", e);
+        }
+    }
+    
+    function restoreSidebarState() {
+        const saved = localStorage.getItem(SIDEBAR_KEY);
+        if (isMobile()) {
+            setSidebarState(true);
+        } else {
+            setSidebarState(saved !== '0'); 
+        }
+    }
+    
+    function toggleSidebar() {
+        const isCurrentlyCollapsed = body.classList.contains('sidebar-collapsed');
+        setSidebarState(!isCurrentlyCollapsed);
+    }
+    
+    function collapseSidebar() {
+        setSidebarState(true);
+    }
+
+
+    // --- RENDU MARKDOWN AVANCÉ (NOUVEAU ET TRÈS PRO) ---
+
+    /**
+     * @function renderMarkdown
+     * Convertit le texte Markdown en HTML, avec gestion des blocs de code.
+     * @param {string} markdownText - Le texte en Markdown.
+     * @returns {string} Le texte converti en HTML.
+     */
+    function renderMarkdown(markdownText) {
+        if (!markdownText) return '';
+
+        // 1. Gérer les blocs de code (```) en premier pour éviter que les backticks internes ne soient traités
+        const codeBlockRegex = /```(\w+)?\n([\s\S]*?)\n```/g;
+        let htmlText = markdownText.replace(codeBlockRegex, (match, lang, code) => {
+            // Langue non utilisée ici mais conservée dans la capture
+            const escapedCode = code
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
+            return `<pre><code class="language-${lang || 'plaintext'}">${escapedCode}</code></pre>`;
+        });
+
+        // 2. Gérer le code inline (`)
+        htmlText = htmlText.replace(/`([^`]+)`/g, (match, inlineCode) => {
+            const escapedCode = inlineCode
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
+            return `<code>${escapedCode}</code>`;
+        });
+        
+        // 3. Gérer les listes et autres blocs simples (non implémenté ici pour simplicité)
+        // ...
+
+        // 4. Gérer les sauts de ligne (doubles sauts pour paragraphes, simples sauts pour <br>)
+        htmlText = htmlText.replace(/\n\n/g, '</p><p>');
+        htmlText = htmlText.replace(/\n/g, '<br>');
+        
+        // 5. Gérer le gras (Bold, car ** est souvent utilisé par l'IA)
+        htmlText = htmlText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        
+        // 6. Encapsuler dans un paragraphe pour la mise en forme générale si ce n'est pas déjà un bloc de code
+        if (!htmlText.startsWith('<pre>')) {
+             htmlText = `<p>${htmlText}</p>`;
+        }
+
+
+        // Correction des p vides et début/fin non désirés
+        htmlText = htmlText.replace(/<p><\/p>/g, '');
+        htmlText = htmlText.replace(/^<p>/, ''); // Supprimer le p initial si c'est le seul contenu
+        htmlText = htmlText.replace(/<\/p>$/, ''); // Supprimer le p final si c'est le seul contenu
+
+        return htmlText.trim();
+    }
+
+
+    // --- GESTION DES MESSAGES DANS L'INTERFACE ---
+
+    /**
+     * @function appendMessage
+     * Ajoute un nouveau message à la zone de messages.
+     */
+    function appendMessage(kind, text, isTyping = false, saveToHistory = true) {
+        const wrap = document.createElement('div');
+        wrap.className = `message ${kind} flex items-start w-full ${kind === 'user' ? 'justify-end' : 'justify-start'}`;
+
+        const bubble = document.createElement('div');
+        const bubbleClasses = [
+            'message-bubble', 'shadow-md', 'text-sm'
+        ];
+
+        if (kind === 'bot') {
+            bubbleClasses.push('bg-gray-200', 'text-gray-800');
+            const avatar = document.createElement('div');
+            avatar.className = 'avatar w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-sm mr-2 shadow-md flex-shrink-0';
+            avatar.textContent = 'AI'; 
+            wrap.appendChild(avatar);
+            wrap.appendChild(bubble);
+
+        } else { // kind === 'user'
+            bubbleClasses.push('bg-blue-600', 'text-white');
+            wrap.appendChild(bubble); 
+        }
+
+        bubble.className = bubbleClasses.join(' ');
+        
+        if (!isTyping) {
+            // Utiliser la fonction de rendu Markdown pour afficher le texte
+            bubble.innerHTML = renderMarkdown(text); 
+
+            // Si ce n'est pas un message temporaire et qu'on doit sauvegarder
+            if (saveToHistory) {
+                 // Mise à jour de l'historique de l'état
+                chatHistory.push({ kind, text });
+                saveMessages();
+            }
+
+        } else {
+            // Loader HTML (plus esthétique)
+            bubble.innerHTML = `
+                <div class="typing-dots">
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                </div>
+            `;
+            bubble.classList.add('w-16'); 
+        }
+        
+        messagesContainer.appendChild(wrap);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+        return bubble;
+    }
+    
+    function showLoader() {
+        // Le loader n'est pas sauvegardé dans l'historique (saveToHistory = false implicite)
+        return appendMessage('bot', null, true, false); 
+    }
+
+    /**
+     * @function hideLoader
+     * Remplace le loader par la réponse finale et sauvegarde.
+     */
+    function hideLoader(loaderBubble, finalContent) {
+        // Retirer la classe de largeur minimale après la réponse
+        loaderBubble.classList.remove('w-16'); 
+
+        // Remplacer le contenu du loader
+        if (!finalContent || finalContent.trim() === '') {
+             loaderBubble.parentElement.remove();
+        } else {
+            // IMPORTANT : Utiliser le rendu Markdown final
+            loaderBubble.innerHTML = renderMarkdown(finalContent); 
+            
+            // Ajouter la réponse finale à l'historique et sauvegarder
+            chatHistory.push({ kind: 'bot', text: finalContent });
+            saveMessages();
+            
+            loaderBubble.parentElement.scrollIntoView({ behavior: 'smooth', block: 'end' });
+        }
+    }
+
+
+    // --- LOGIQUE D'APPEL À L'API GEMINI ---
+
+    /**
+     * @function buildChatHistoryForAPI
+     * Construit l'historique du chat pour l'API en excluant le message initial par défaut.
+     */
+    function buildChatHistoryForAPI() {
+        // Convertit l'historique local ({kind, text}) en format API ({role, parts: [{text}]})
+        return chatHistory
+            .filter(msg => msg !== initialBotMessage) // Exclure le message de bienvenue, car il est dans systemInstruction
+            .map(msg => ({
+                role: msg.kind === 'user' ? 'user' : 'model', // Gemini utilise 'model' pour le bot
+                parts: [{ text: msg.text }]
+            }));
+    }
+
+    async function getAIResponse(userMessage) {
+        const apiKey = GEMINI_API_KEY;
+        if (!apiKey || apiKey.length < 30) {
+            return "Erreur: La clé API Gemini n'est pas configurée ou est invalide. Veuillez la vérifier.";
+        }
+
+        const apiUrl = `${GEMINI_API_URL}/${GEMINI_MODEL}:generateContent?key=${apiKey}`;
+        
+        // CONSTRUIRE L'HISTORIQUE COMPLET POUR L'API
+        const contents = [...buildChatHistoryForAPI(), { role: 'user', parts: [{ text: userMessage }] }];
+
+        const payload = {
+            contents: contents, // ENVOI DE TOUT L'HISTORIQUE
+            systemInstruction: {
+                parts: [{ text: GEMINI_SYSTEM_INSTRUCTION }]
+            },
+        };
+
+        const maxRetries = 5;
+        for (let attempt = 0; attempt < maxRetries; attempt++) {
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (response.status === 429 && attempt < maxRetries - 1) {
+                    const delay = Math.pow(2, attempt) * 1000;
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                    continue; 
+                }
+
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}));
+                    const errorMessage = errorData.error?.message || `Erreur API: ${response.status} ${response.statusText}`;
+                    
+                    if (response.status === 400 || response.status === 403) {
+                         const customMessage = `Erreur de clé/quota (${response.status}): La clé API semble invalide, non autorisée, ou le quota a été dépassé. Vérifiez la clé ou votre compte Google AI Studio.`;
+                         throw new Error(customMessage);
+                    }
+                    
+                    throw new Error(errorMessage);
+                }
+
+                const data = await response.json();
+                const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+                
+                return text || "Aucune réponse textuelle reçue de l'API Gemini.";
+
+            } catch (error) {
+                if (error.message.includes("Failed to fetch") && attempt < maxRetries - 1) {
+                    const delay = Math.pow(2, attempt) * 1000;
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                    continue;
+                }
+                throw error; 
+            }
+        }
+        return "Échec de la communication après plusieurs tentatives. Vérifiez votre connexion ou l'état du service API.";
+    }
+
+
+    /**
+     * @function handleSendMessage
+     * Gère l'envoi du message par l'utilisateur.
+     */
+    async function handleSendMessage(e) {
+        e.preventDefault();
+        
+        if (isRequesting) {
+            console.warn("Requête en cours. Veuillez patienter.");
+            return;
+        }
+
+        const userMessage = input.value.trim();
+        if (!userMessage) return;
+
+        // 1. Afficher le message utilisateur (et le sauvegarder)
+        appendMessage('user', userMessage);
+        
+        // 2. Vider l'input et désactiver les contrôles
+        input.value = '';
+        input.disabled = true;
+        sendButton.disabled = true;
+        isRequesting = true;
+        sendButton.classList.add('opacity-50', 'cursor-not-allowed');
+
+        // 3. Afficher le loader du bot
+        const loaderBubble = showLoader();
+
+        try {
+            // 4. Appeler l'API Gemini
+            const aiResponse = await getAIResponse(userMessage);
+            
+            // 5. Remplacer le loader par la réponse finale (et la sauvegarder)
+            hideLoader(loaderBubble, aiResponse);
+
+        } catch (error) {
+            // En cas d'erreur non gérée
+            hideLoader(loaderBubble, `Désolé, une erreur est survenue lors de la communication avec l'IA. Détails: ${error.message}`);
+        } finally {
+            // 6. Réactiver les contrôles
+            isRequesting = false;
+            input.disabled = false;
+            sendButton.disabled = false;
+            sendButton.classList.remove('opacity-50', 'cursor-not-allowed');
+            input.focus(); 
+        }
+    }
+
+
+    // --- INITIALISATION ET LISTENERS ---
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // 1. Restaurer l'état de la sidebar
+        restoreSidebarState();
+        
+        // 2. Charger l'historique du chat (Nouveau)
+        loadMessages();
+
+        // 3. Listeners pour le basculement de la sidebar
+        if (sidebarToggle) {
+            sidebarToggle.addEventListener('click', toggleSidebar);
+        }
+        if (sidebarClose) {
+            sidebarClose.addEventListener('click', collapseSidebar);
+        }
+
+        // 4. Listener pour l'envoi de message
+        composer.addEventListener('submit', handleSendMessage);
+        
+        // 5. Listener pour la réactivité (si l'utilisateur redimensionne)
+        window.addEventListener('resize', restoreSidebarState);
+
+        // 6. Initialisation : focus sur l'input
+        input.focus();
+    });
+</script>
+</body>
+</html>
