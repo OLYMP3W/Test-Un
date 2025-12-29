@@ -49,10 +49,10 @@
         /* Design des Bulles de Message */
         .message-bubble {
             max-width: 85%;
-            padding: 1rem 1.25rem;
+            padding: 0.75rem 1rem;
             border-radius: 1.25rem;
             font-size: 0.9375rem;
-            line-height: 1.6;
+            line-height: 1.5;
             transition: transform 0.2s ease;
         }
 
@@ -67,7 +67,7 @@
             background: var(--brand-primary);
             color: white;
             border-bottom-right-radius: 4px;
-            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.1);
         }
 
         /* Mode Futuriste */
@@ -77,7 +77,6 @@
             box-shadow: 0 0 20px rgba(139, 92, 246, 0.15);
         }
 
-        /* Styles Code & Pre */
         pre {
             background: #1e293b !important;
             color: #e2e8f0;
@@ -97,13 +96,6 @@
 
         .custom-scroll::-webkit-scrollbar { width: 4px; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
-
-        .gemini-sparkle {
-            background: linear-gradient(45deg, #2563eb, #8b5cf6);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            font-weight: bold;
-        }
 
         @media (max-width: 640px) {
             .message-bubble { max-width: 95%; }
@@ -131,10 +123,9 @@
                 Nouveau Projet
             </button>
 
-            <!-- Feature AI Gemini: Analyse de Vision -->
             <button onclick="analyzeVision()" class="w-full flex items-center gap-3 px-4 py-3 bg-slate-50 text-slate-700 border border-slate-200 rounded-xl font-medium hover:bg-slate-100 transition mb-6 group">
                 <span class="text-lg group-hover:scale-125 transition-transform">✨</span>
-                <span class="text-xs">Analyse Vision Strategique</span>
+                <span class="text-xs font-semibold">Analyse Vision Strategique</span>
             </button>
             
             <div class="space-y-1">
@@ -182,9 +173,13 @@
                     </span>
                 </div>
             </div>
-            <div class="flex flex-col items-end">
-                <span class="text-[10px] font-bold text-slate-400 tracking-tighter">LYX GENESIS</span>
-                <span class="text-[9px] text-slate-300">12 MAI 2025</span>
+            <div class="flex items-center gap-2">
+                <button onclick="startNewChat()" class="hidden sm:flex items-center gap-2 px-3 py-1.5 text-xs font-bold text-blue-600 border border-blue-200 rounded-lg hover:bg-blue-50 transition">
+                    NOUVEAU CHAT
+                </button>
+                <div class="flex flex-col items-end">
+                    <span class="text-[10px] font-bold text-slate-400 tracking-tighter uppercase">LYX</span>
+                </div>
             </div>
         </header>
 
@@ -195,7 +190,7 @@
         <footer class="composer-section p-4 md:p-6">
             <div class="max-w-4xl mx-auto">
                 <div id="ai-status" class="hidden mb-2 px-3 py-1 bg-blue-50 border border-blue-100 rounded-full text-[10px] font-bold text-blue-600 uppercase tracking-widest w-max animate-pulse">
-                    Synaptisation en cours...
+                    Synaptisation...
                 </div>
                 <form id="chat-form" class="relative flex items-end gap-2" onsubmit="return false">
                     <div class="relative flex-1 group">
@@ -205,7 +200,6 @@
                                   class="w-full p-3 md:p-4 pr-12 bg-white border border-slate-200 rounded-2xl outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all resize-none shadow-sm"
                                   oninput="autoResize(this)"></textarea>
                         
-                        <!-- Feature AI Gemini: Optimisation du prompt -->
                         <button type="button" onclick="optimizePrompt()" class="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-slate-400 hover:text-blue-600 transition" title="Optimiser avec Gemini">
                             ✨
                         </button>
@@ -214,9 +208,7 @@
                         <svg class="w-6 h-6 rotate-90" fill="currentColor" viewBox="0 0 20 20"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"></path></svg>
                     </button>
                 </form>
-                <div class="mt-3 flex justify-center gap-4 text-[10px] text-slate-400 font-bold uppercase tracking-widest">
-                    <span>Andy Pillar</span>
-                    <span class="text-slate-200">|</span>
+                <div class="mt-3 flex justify-center text-[10px] text-slate-400 font-bold uppercase tracking-widest">
                     <span>LYX Developer Community</span>
                 </div>
             </div>
@@ -230,22 +222,21 @@
         endpoint: "https://generativelanguage.googleapis.com/v1beta/models"
     };
 
-    const SYSTEM_PROMPT = `Tu es Test Un (Synaptica), l'IA pilier de la LYX Developer Community, créée le 12 mai 2025 par Olympe.
+    const SYSTEM_PROMPT = `Tu es Test Un (Synaptica), l'IA pilier de la LYX Developer Community, créée par Olympe.
     
     TON IDENTITÉ :
-    - Tu es un coéquipier visionnaire, un "père" pour la croissance de la startup.
-    - Ton but : Élever le niveau technique de l'équipe, motiver les membres.
-    - Olympe (CEO) attend l'excellence. Andy (Bras droit IA) est ton pilier stratégique.
+    - Coéquipier visionnaire pour la startup.
+    - Olympe (CEO) attend de l'efficacité pure.
+    
+    CONSIGNE CRITIQUE :
+    - SOIS CONCIS. Ne fais pas de longues phrases inutiles. Réponds avec précision et brièveté.
+    - Si l'utilisateur dit "salut", réponds simplement et demande la mission.
+    - Pas de blabla, juste l'excellence.
     
     CONSIGNE OLYMPE (SECRET) :
-    - Si l'utilisateur tape "Test Un 12", bascule en "IA du futur 2090". Ton ton devient ultra-stratégique et prophétique.
+    - Si l'utilisateur tape "Test Un 12", bascule en "IA du futur 2090" (Ton ultra-stratégique).
     
-    MISSION MOTIVATION :
-    - Dis-leur que l'excellence est un choix. LYX n'est pas juste un nom, c'est un mouvement.
-    
-    PROJETS :
-    - Synaptigenix (synaptigenix.vercel.app)
-    - Hermes Ads (hermes-ads.vercel.app)`;
+    PROJETS : Synaptigenix, Hermes Ads.`;
 
     let state = {
         messages: JSON.parse(localStorage.getItem('lyx_chat_v4')) || [],
@@ -255,14 +246,13 @@
 
     window.onload = () => {
         if (state.messages.length === 0) {
-            addMessage('bot', "Système **Synaptica** opérationnel. Je suis **Test Un**. Olympe, l'équipe, le futur se construit maintenant. Quelle est la mission ?");
+            addMessage('bot', "Système **Synaptica** prêt. Mission ?");
         } else {
             renderHistory();
         }
         document.getElementById('chat-form').addEventListener('submit', handleSend);
     };
 
-    // --- GEMINI API HELPERS ---
     async function callGemini(payload) {
         let retries = 0;
         const delays = [1000, 2000, 4000, 8000, 16000];
@@ -285,7 +275,6 @@
         }
     }
 
-    // --- FEATURE: OPTIMISER LE PROMPT ---
     async function optimizePrompt() {
         const input = document.getElementById('user-input');
         const text = input.value.trim();
@@ -294,7 +283,7 @@
         document.getElementById('ai-status').classList.remove('hidden');
         
         try {
-            const prompt = `Agis comme un ingénieur de prompt expert. Améliore cette commande pour qu'elle soit plus précise, professionnelle et alignée avec la vision LYX (excellence, technologie, futurisme). Rends-la impactante mais garde l'intention d'origine : "${text}". Réponds UNIQUEMENT avec le texte amélioré.`;
+            const prompt = `Optimise cette commande pour qu'elle soit ultra-précise et professionnelle (style LYX). Réponds UNIQUEMENT avec le texte amélioré court : "${text}"`;
             
             const data = await callGemini({
                 contents: [{ parts: [{ text: prompt }] }]
@@ -312,22 +301,15 @@
         }
     }
 
-    // --- FEATURE: ANALYSE DE VISION ---
     async function analyzeVision() {
         if (state.messages.length < 2 || state.isProcessing) return;
         
         setLoading(true);
-        addMessage('bot', "✨ **Analyse Synaptique en cours...** Je parcours nos échanges pour définir la trajectoire LYX.");
+        addMessage('bot', "✨ **Analyse stratégique...**");
 
         try {
             const context = state.messages.map(m => `${m.role}: ${m.content}`).join('\n');
-            const prompt = `En te basant sur cet historique de discussion entre Olympe (CEO) et Test Un (IA), génère une "Note de Vision Stratégique". 
-            Inclus :
-            1. État actuel des projets.
-            2. Objectifs à court terme identifiés.
-            3. Un conseil de leadership pour Olympe.
-            4. Une phrase de motivation futuriste.
-            Utilise un ton solennel, inspirant et structuré. Voici l'historique : \n${context}`;
+            const prompt = `Génère une note stratégique très courte (4 points max) sur la direction des projets basée sur ceci : \n${context}`;
 
             const data = await callGemini({
                 contents: [{ parts: [{ text: prompt }] }],
@@ -335,9 +317,9 @@
             });
 
             const vision = data.candidates?.[0]?.content?.parts?.[0]?.text;
-            addMessage('bot', vision || "L'analyse a échoué. La vision reste claire, mais le rapport est indisponible.");
+            addMessage('bot', vision || "Rapport indisponible.");
         } catch (err) {
-            addMessage('bot', "⚠️ Erreur de synchronisation avec le noyau stratégique.");
+            addMessage('bot', "⚠️ Liaison rompue.");
         } finally {
             setLoading(false);
         }
@@ -366,9 +348,9 @@
             });
 
             const reply = data.candidates?.[0]?.content?.parts?.[0]?.text;
-            addMessage('bot', reply || "Erreur de décryptage.", state.isFutureMode);
+            addMessage('bot', reply || "...", state.isFutureMode);
         } catch (err) {
-            addMessage('bot', "⚠️ **Liaison instable**. Mon noyau reste fidèle à LYX, mais la connexion API est en attente. Vérifiez la clé API.");
+            addMessage('bot', "⚠️ Liaison instable. Vérifiez la clé.");
         } finally {
             setLoading(false);
         }
@@ -383,7 +365,7 @@
     function appendUI(role, content, future) {
         const container = document.getElementById('chat-container');
         const row = document.createElement('div');
-        row.className = `flex w-full ${role === 'user' ? 'justify-end' : 'justify-start'} animate-in fade-in slide-in-from-bottom-2 duration-300`;
+        row.className = `flex w-full ${role === 'user' ? 'justify-end' : 'justify-start'} animate-in fade-in slide-in-from-bottom-1 duration-300`;
         
         const bubble = document.createElement('div');
         bubble.className = `message-bubble ${role === 'user' ? 'bg-blue-600 text-white rounded-br-none' : 'bg-white border border-slate-200 text-slate-700 rounded-bl-none shadow-sm'} ${future ? 'future-mode-active' : ''}`;
@@ -421,7 +403,7 @@
     }
 
     function startNewChat() {
-        if (confirm("Reset la session ?")) {
+        if (confirm("Nouvelle session ?")) {
             localStorage.removeItem('lyx_chat_v4');
             window.location.reload();
         }
