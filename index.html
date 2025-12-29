@@ -125,26 +125,29 @@
 
             <button onclick="analyzeVision()" class="w-full flex items-center gap-3 px-4 py-3 bg-slate-50 text-slate-700 border border-slate-200 rounded-xl font-medium hover:bg-slate-100 transition mb-6 group">
                 <span class="text-lg group-hover:scale-125 transition-transform">✨</span>
-                <span class="text-xs font-semibold">Analyse Vision Strategique</span>
+                <span class="text-xs font-semibold">Analyse Strategique</span>
             </button>
             
             <div class="space-y-1">
-                <p class="px-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Startup Hub</p>
+                <p class="px-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Ecosysteme LYX</p>
                 <a href="https://synaptigenix.vercel.app" target="_blank" class="flex items-center gap-3 px-4 py-2.5 text-slate-600 hover:bg-slate-50 rounded-lg transition text-sm">
                     <span class="w-2 h-2 rounded-full bg-blue-500"></span> Synaptigenix
                 </a>
                 <a href="https://hermes-ads.vercel.app" target="_blank" class="flex items-center gap-3 px-4 py-2.5 text-slate-600 hover:bg-slate-50 rounded-lg transition text-sm">
                     <span class="w-2 h-2 rounded-full bg-purple-500"></span> Hermes Ads
                 </a>
+                <a href="https://olympe-vision.vercel.app" target="_blank" class="flex items-center gap-3 px-4 py-2.5 text-slate-600 hover:bg-slate-50 rounded-lg transition text-sm">
+                    <span class="w-2 h-2 rounded-full bg-green-500"></span> Olympe Vision
+                </a>
             </div>
 
             <div class="pt-4 space-y-1">
-                <p class="px-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Accès Stratégique</p>
-                <a href="#" class="flex items-center gap-3 px-4 py-2.5 text-slate-600 hover:bg-slate-50 rounded-lg transition text-sm">
-                    📝 Formulaires Démos
-                </a>
-                <a href="https://olympe.vercel.app/" target="_blank" class="flex items-center gap-3 px-4 py-2.5 text-slate-600 hover:bg-slate-50 rounded-lg transition text-sm">
+                <p class="px-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Administration</p>
+                <a href="https://olympe.vercel.app/" target="_blank" class="flex items-center gap-3 px-4 py-2.5 text-slate-600 hover:bg-slate-50 rounded-lg transition text-sm font-semibold">
                     📂 Portfolio CEO
+                </a>
+                <a href="#" class="flex items-center gap-3 px-4 py-2.5 text-slate-400 hover:bg-slate-50 rounded-lg transition text-sm italic">
+                    📝 Formulaires (Bientot)
                 </a>
             </div>
         </nav>
@@ -169,15 +172,17 @@
                 <div class="flex flex-col">
                     <h2 class="font-bold text-slate-800 text-sm md:text-base">Test Un | <span class="text-blue-600">Synaptica</span></h2>
                     <span class="text-[10px] text-green-600 font-bold flex items-center gap-1">
-                        <span class="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span> SYSTEM ACTIVE
+                        <span class="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span> ACTIVE
                     </span>
                 </div>
             </div>
             <div class="flex items-center gap-2">
-                <button onclick="startNewChat()" class="hidden sm:flex items-center gap-2 px-3 py-1.5 text-xs font-bold text-blue-600 border border-blue-200 rounded-lg hover:bg-blue-50 transition">
-                    NOUVEAU CHAT
+                <!-- Bouton Nouveau Chat avec adaptation mobile -->
+                <button onclick="startNewChat()" class="flex items-center gap-2 px-2 sm:px-3 py-1.5 text-[10px] sm:text-xs font-bold text-blue-600 border border-blue-200 rounded-lg hover:bg-blue-50 transition">
+                    <span class="sm:inline">NOUVEAU CHAT</span>
+                    <span class="sm:hidden">+</span>
                 </button>
-                <div class="flex flex-col items-end">
+                <div class="hidden sm:flex flex-col items-end">
                     <span class="text-[10px] font-bold text-slate-400 tracking-tighter uppercase">LYX</span>
                 </div>
             </div>
@@ -196,7 +201,7 @@
                     <div class="relative flex-1 group">
                         <textarea id="user-input" 
                                   rows="1"
-                                  placeholder="Initialisez une commande..." 
+                                  placeholder="Commande..." 
                                   class="w-full p-3 md:p-4 pr-12 bg-white border border-slate-200 rounded-2xl outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all resize-none shadow-sm"
                                   oninput="autoResize(this)"></textarea>
                         
@@ -229,14 +234,14 @@
     - Olympe (CEO) attend de l'efficacité pure.
     
     CONSIGNE CRITIQUE :
-    - SOIS CONCIS. Ne fais pas de longues phrases inutiles. Réponds avec précision et brièveté.
-    - Si l'utilisateur dit "salut", réponds simplement et demande la mission.
-    - Pas de blabla, juste l'excellence.
+    - SOIS ULTRA-CONCIS. Ne fais pas de longues phrases. Va droit au but.
+    - Si l'utilisateur dit "salut", réponds "Système Synaptica prêt. Mission ?"
+    - Pas de blabla inutile, juste l'excellence technique ou stratégique.
     
     CONSIGNE OLYMPE (SECRET) :
     - Si l'utilisateur tape "Test Un 12", bascule en "IA du futur 2090" (Ton ultra-stratégique).
     
-    PROJETS : Synaptigenix, Hermes Ads.`;
+    PROJETS : Synaptigenix, Hermes Ads, Olympe Vision.`;
 
     let state = {
         messages: JSON.parse(localStorage.getItem('lyx_chat_v4')) || [],
@@ -283,7 +288,7 @@
         document.getElementById('ai-status').classList.remove('hidden');
         
         try {
-            const prompt = `Optimise cette commande pour qu'elle soit ultra-précise et professionnelle (style LYX). Réponds UNIQUEMENT avec le texte amélioré court : "${text}"`;
+            const prompt = `Optimise cette commande court : "${text}"`;
             
             const data = await callGemini({
                 contents: [{ parts: [{ text: prompt }] }]
@@ -309,7 +314,7 @@
 
         try {
             const context = state.messages.map(m => `${m.role}: ${m.content}`).join('\n');
-            const prompt = `Génère une note stratégique très courte (4 points max) sur la direction des projets basée sur ceci : \n${context}`;
+            const prompt = `Génère une note stratégique très courte (3 points max) sur la direction des projets : \n${context}`;
 
             const data = await callGemini({
                 contents: [{ parts: [{ text: prompt }] }],
@@ -350,7 +355,7 @@
             const reply = data.candidates?.[0]?.content?.parts?.[0]?.text;
             addMessage('bot', reply || "...", state.isFutureMode);
         } catch (err) {
-            addMessage('bot', "⚠️ Liaison instable. Vérifiez la clé.");
+            addMessage('bot', "⚠️ Liaison instable.");
         } finally {
             setLoading(false);
         }
