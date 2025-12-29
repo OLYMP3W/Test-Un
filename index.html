@@ -24,7 +24,7 @@
             overflow: hidden;
         }
 
-        /* Responsive Sidebar */
+        /* Sidebar Responsive */
         .sidebar {
             width: 280px;
             background: white;
@@ -46,7 +46,7 @@
             }
         }
 
-        /* Message Bubble Design */
+        /* Design des Bulles de Message */
         .message-bubble {
             max-width: 85%;
             padding: 1rem 1.25rem;
@@ -70,14 +70,14 @@
             box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
         }
 
-        /* Futurist Mode Style */
+        /* Mode Futuriste */
         .future-mode-active {
             border: 2px solid #8b5cf6 !important;
             background: linear-gradient(to bottom right, #ffffff, #f5f3ff) !important;
             box-shadow: 0 0 20px rgba(139, 92, 246, 0.15);
         }
 
-        /* Code & Pre styling */
+        /* Styles Code & Pre */
         pre {
             background: #1e293b !important;
             color: #e2e8f0;
@@ -97,6 +97,13 @@
 
         .custom-scroll::-webkit-scrollbar { width: 4px; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+
+        .gemini-sparkle {
+            background: linear-gradient(45deg, #2563eb, #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: bold;
+        }
 
         @media (max-width: 640px) {
             .message-bubble { max-width: 95%; }
@@ -123,6 +130,12 @@
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
                 Nouveau Projet
             </button>
+
+            <!-- Feature AI Gemini: Analyse de Vision -->
+            <button onclick="analyzeVision()" class="w-full flex items-center gap-3 px-4 py-3 bg-slate-50 text-slate-700 border border-slate-200 rounded-xl font-medium hover:bg-slate-100 transition mb-6 group">
+                <span class="text-lg group-hover:scale-125 transition-transform">✨</span>
+                <span class="text-xs">Analyse Vision Strategique</span>
+            </button>
             
             <div class="space-y-1">
                 <p class="px-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Startup Hub</p>
@@ -139,7 +152,7 @@
                 <a href="#" class="flex items-center gap-3 px-4 py-2.5 text-slate-600 hover:bg-slate-50 rounded-lg transition text-sm">
                     📝 Formulaires Démos
                 </a>
-                <a href="https://olympe-portfolio.vercel.app" target="_blank" class="flex items-center gap-3 px-4 py-2.5 text-slate-600 hover:bg-slate-50 rounded-lg transition text-sm">
+                <a href="https://olympe.vercel.app/" target="_blank" class="flex items-center gap-3 px-4 py-2.5 text-slate-600 hover:bg-slate-50 rounded-lg transition text-sm">
                     📂 Portfolio CEO
                 </a>
             </div>
@@ -176,18 +189,26 @@
         </header>
 
         <section id="chat-container" class="flex-1 overflow-y-auto p-4 md:p-8 space-y-6 custom-scroll">
-            <!-- Messages flow -->
+            <!-- Flux de messages -->
         </section>
 
         <footer class="composer-section p-4 md:p-6">
             <div class="max-w-4xl mx-auto">
+                <div id="ai-status" class="hidden mb-2 px-3 py-1 bg-blue-50 border border-blue-100 rounded-full text-[10px] font-bold text-blue-600 uppercase tracking-widest w-max animate-pulse">
+                    Synaptisation en cours...
+                </div>
                 <form id="chat-form" class="relative flex items-end gap-2" onsubmit="return false">
-                    <div class="relative flex-1">
+                    <div class="relative flex-1 group">
                         <textarea id="user-input" 
                                   rows="1"
                                   placeholder="Initialisez une commande..." 
                                   class="w-full p-3 md:p-4 pr-12 bg-white border border-slate-200 rounded-2xl outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all resize-none shadow-sm"
                                   oninput="autoResize(this)"></textarea>
+                        
+                        <!-- Feature AI Gemini: Optimisation du prompt -->
+                        <button type="button" onclick="optimizePrompt()" class="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-slate-400 hover:text-blue-600 transition" title="Optimiser avec Gemini">
+                            ✨
+                        </button>
                     </div>
                     <button type="submit" id="send-btn" class="p-3 md:p-4 bg-blue-600 text-white rounded-2xl hover:bg-blue-700 transition shadow-lg shadow-blue-500/30 disabled:opacity-50">
                         <svg class="w-6 h-6 rotate-90" fill="currentColor" viewBox="0 0 20 20"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"></path></svg>
@@ -196,7 +217,7 @@
                 <div class="mt-3 flex justify-center gap-4 text-[10px] text-slate-400 font-bold uppercase tracking-widest">
                     <span>Andy Pillar</span>
                     <span class="text-slate-200">|</span>
-                    <span>Olympe Vision</span>
+                    <span>LYX Developer Community</span>
                 </div>
             </div>
         </footer>
@@ -204,7 +225,7 @@
 
 <script>
     const API_CONFIG = {
-        key: "", 
+        key: "AIzaSyDptxhIYOexK-Uem3jMd6k8J7zjgdbuqko", 
         model: "gemini-2.5-flash-preview-09-2025",
         endpoint: "https://generativelanguage.googleapis.com/v1beta/models"
     };
@@ -241,6 +262,87 @@
         document.getElementById('chat-form').addEventListener('submit', handleSend);
     };
 
+    // --- GEMINI API HELPERS ---
+    async function callGemini(payload) {
+        let retries = 0;
+        const delays = [1000, 2000, 4000, 8000, 16000];
+        
+        while (retries < 5) {
+            try {
+                const response = await fetch(`${API_CONFIG.endpoint}/${API_CONFIG.model}:generateContent?key=${API_CONFIG.key}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                if (!response.ok) throw new Error('API Error');
+                return await response.json();
+            } catch (err) {
+                retries++;
+                if (retries === 5) throw err;
+                await new Promise(r => setTimeout(r, delays[retries-1]));
+            }
+        }
+    }
+
+    // --- FEATURE: OPTIMISER LE PROMPT ---
+    async function optimizePrompt() {
+        const input = document.getElementById('user-input');
+        const text = input.value.trim();
+        if (!text || state.isProcessing) return;
+
+        document.getElementById('ai-status').classList.remove('hidden');
+        
+        try {
+            const prompt = `Agis comme un ingénieur de prompt expert. Améliore cette commande pour qu'elle soit plus précise, professionnelle et alignée avec la vision LYX (excellence, technologie, futurisme). Rends-la impactante mais garde l'intention d'origine : "${text}". Réponds UNIQUEMENT avec le texte amélioré.`;
+            
+            const data = await callGemini({
+                contents: [{ parts: [{ text: prompt }] }]
+            });
+
+            const improvedText = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+            if (improvedText) {
+                input.value = improvedText;
+                autoResize(input);
+            }
+        } catch (err) {
+            console.error(err);
+        } finally {
+            document.getElementById('ai-status').classList.add('hidden');
+        }
+    }
+
+    // --- FEATURE: ANALYSE DE VISION ---
+    async function analyzeVision() {
+        if (state.messages.length < 2 || state.isProcessing) return;
+        
+        setLoading(true);
+        addMessage('bot', "✨ **Analyse Synaptique en cours...** Je parcours nos échanges pour définir la trajectoire LYX.");
+
+        try {
+            const context = state.messages.map(m => `${m.role}: ${m.content}`).join('\n');
+            const prompt = `En te basant sur cet historique de discussion entre Olympe (CEO) et Test Un (IA), génère une "Note de Vision Stratégique". 
+            Inclus :
+            1. État actuel des projets.
+            2. Objectifs à court terme identifiés.
+            3. Un conseil de leadership pour Olympe.
+            4. Une phrase de motivation futuriste.
+            Utilise un ton solennel, inspirant et structuré. Voici l'historique : \n${context}`;
+
+            const data = await callGemini({
+                contents: [{ parts: [{ text: prompt }] }],
+                systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] }
+            });
+
+            const vision = data.candidates?.[0]?.content?.parts?.[0]?.text;
+            addMessage('bot', vision || "L'analyse a échoué. La vision reste claire, mais le rapport est indisponible.");
+        } catch (err) {
+            addMessage('bot', "⚠️ Erreur de synchronisation avec le noyau stratégique.");
+        } finally {
+            setLoading(false);
+        }
+    }
+
     async function handleSend() {
         const input = document.getElementById('user-input');
         const text = input.value.trim();
@@ -258,21 +360,15 @@
                 parts: [{ text: m.content }]
             }));
 
-            const response = await fetch(`${API_CONFIG.endpoint}/${API_CONFIG.model}:generateContent?key=${API_CONFIG.key}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    contents: history,
-                    systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] }
-                })
+            const data = await callGemini({
+                contents: history,
+                systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] }
             });
 
-            if (!response.ok) throw new Error();
-            const data = await response.json();
             const reply = data.candidates?.[0]?.content?.parts?.[0]?.text;
             addMessage('bot', reply || "Erreur de décryptage.", state.isFutureMode);
         } catch (err) {
-            addMessage('bot', "⚠️ **Liaison instable**. Mon noyau reste fidèle à LYX, mais la connexion API est en attente.");
+            addMessage('bot', "⚠️ **Liaison instable**. Mon noyau reste fidèle à LYX, mais la connexion API est en attente. Vérifiez la clé API.");
         } finally {
             setLoading(false);
         }
